@@ -1,8 +1,10 @@
 use ncurses::*;
+use std::convert::TryInto;
 
 #[derive(Copy, Clone)]
 struct Arena {
-    tiles: [i32; 9],
+    tiles: [usize; 9],
+    turn: usize,
 }
 
 impl Arena {
@@ -23,9 +25,15 @@ impl Arena {
             i += 1;
         }
     }
-    fn insert(&mut self, x: i32, y: i32, value: i32) {
-	let index = x + (y * 3);
-	self.tiles[index] = value;
+    fn insert(&mut self, cursor: Cursor) {
+        let index: usize = (cursor.y + (cursor.x * 3)).try_into().unwrap();
+        if self.tiles[index] == 0 {
+            self.tiles[index] = self.turn % 2 + 1;
+            self.turn += 1;
+        }
+    }
+    fn win(self) {
+
     }
 }
 
@@ -57,7 +65,7 @@ impl Cursor {
             self.y = 0;
         }
     }
-    fn step(&self, window: WINDOW) {
+    fn step(self, window: WINDOW) {
         wmove(window, self.x, self.y * 2 + 1);
     }
 }
@@ -65,15 +73,18 @@ impl Cursor {
 fn main() {
     // init
     let window = initscr();
-    let arena = Arena { tiles: [1; 9] };
+    let mut arena = Arena {
+        tiles: [0; 9],
+        turn: 1,
+    };
     let mut cursor = Cursor { x: 0, y: 0 };
 
     loop {
         // drawing
         clear();
-	arena.draw();
+        arena.draw();
         refresh();
-	cursor.step(window);
+        cursor.step(window);
 
         // input
         match getch() {
@@ -85,6 +96,8 @@ fn main() {
             67 => cursor.traverse(3),
             // left
             68 => cursor.traverse(2),
+            // place
+            10 => arena.insert(cursor),
             // dont do anything
             _ => (),
         }
