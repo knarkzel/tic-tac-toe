@@ -32,8 +32,51 @@ impl Arena {
             self.turn += 1;
         }
     }
-    fn win(self) {
+    fn win(self) -> usize {
+        for i in 1..3 {
+            let index: usize = i.try_into().unwrap();
 
+            // top-to-bottom
+            if (self.tiles[0] == index) && (self.tiles[3] == index) && (self.tiles[6] == index) {
+                return index;
+            } else if (self.tiles[1] == index)
+                && (self.tiles[4] == index)
+                && (self.tiles[7] == index)
+            {
+                return index;
+            } else if (self.tiles[2] == index)
+                && (self.tiles[5] == index)
+                && (self.tiles[8] == index)
+            {
+                return index;
+            }
+
+            // left to right
+            if (self.tiles[0] == index) && (self.tiles[1] == index) && (self.tiles[2] == index) {
+                return index;
+            } else if (self.tiles[3] == index)
+                && (self.tiles[4] == index)
+                && (self.tiles[5] == index)
+            {
+                return index;
+            } else if (self.tiles[6] == index)
+                && (self.tiles[7] == index)
+                && (self.tiles[8] == index)
+            {
+                return index;
+            }
+
+            // diagonal
+            if (self.tiles[0] == index) && (self.tiles[4] == index) && (self.tiles[8] == index) {
+                return index;
+            } else if (self.tiles[2] == index)
+                && (self.tiles[4] == index)
+                && (self.tiles[6] == index)
+            {
+                return index;
+            }
+        }
+        return 0 as usize;
     }
 }
 
@@ -80,11 +123,24 @@ fn main() {
     let mut cursor = Cursor { x: 0, y: 0 };
 
     loop {
-        // drawing
+        // draw arena and move cursor
         clear();
         arena.draw();
         refresh();
         cursor.step(window);
+
+        // check for win condition
+        let winner: usize = arena.win();
+        if winner == 1 || winner == 2 {
+            clear();
+            addstr("Player ");
+            match winner {
+                1 => addstr("x"),
+                2 => addstr("o"),
+                _ => 0,
+            };
+            addstr(" won.");
+        }
 
         // input
         match getch() {
